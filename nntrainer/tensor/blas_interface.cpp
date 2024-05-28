@@ -14,6 +14,7 @@
 
 #include <blas_interface.h>
 #include <nntrainer_error.h>
+#include <nntrainer_log.h>
 
 #if (defined USE__FP16 && defined USE_NEON)
 #include <blas_neon.h>
@@ -510,6 +511,8 @@ static void sgemv_raw(CBLAS_ORDER order, CBLAS_TRANSPOSE TransA,
   unsigned int incy = abs(incY);
   unsigned int incx = abs(incX);
 
+  ml_logi("blas_interface: sgemv_raw");
+
   if (TransA == CblasTrans) {
     sgemv_loop(i, j, N, M);
   } else {
@@ -899,15 +902,28 @@ void sgemv(CBLAS_ORDER order, CBLAS_TRANSPOSE TransA, const unsigned int M,
            const unsigned int N, const float alpha, const float *A,
            const unsigned int lda, const float *X, const int incX,
            const float beta, float *Y, const int incY) {
-#ifdef USE_BLAS
-#ifdef BLAS_NUM_THREADS
-  openblas_set_num_threads(BLAS_NUM_THREADS);
-#endif
-  return cblas_sgemv(order, TransA, M, N, alpha, A, lda, X, incX, beta, Y,
-                     incY);
-#else
-  return sgemv_raw(order, TransA, M, N, alpha, A, lda, X, incX, beta, Y, incY);
-#endif
+  ml_logi("blas_interface: sgemv");
+// #ifdef USE_BLAS
+// #ifdef BLAS_NUM_THREADS
+//   openblas_set_num_threads(BLAS_NUM_THREADS);
+// #endif
+//   ml_logi("blas_interface: sgemv->cblas_sgemv");
+//     return cblas_sgemv(order, TransA, M, N, alpha, A, lda, X, incX, beta, Y,
+//                        incY);
+//   #else
+//   return nntrainer::sgemv_raw(order, TransA, M, N, alpha, A, lda, X, incX, beta,
+//                               Y, incY);
+// #endif
+  unsigned int incy = abs(incY);
+  unsigned int incx = abs(incX);
+
+  ml_logi("blas_interface: sgemv_raw hardcoded");
+
+  if (TransA == CblasTrans) {
+    sgemv_loop(i, j, N, M);
+  } else {
+    sgemv_loop(j, i, M, N);
+  }
 }
 
 unsigned int isamax(const unsigned int N, const float *X, const int incX) {

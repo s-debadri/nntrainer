@@ -115,7 +115,8 @@ using LayerGoldenTestParamType =
              int /**< LayerGoldenTestParamOptions */,
              std::string /** < TensorFormat */,
              std::string /** < Weight TensorType */,
-             std::string /** < Activation TensorType */
+             std::string /** < Activation TensorType */,
+             ml::train::LayerComputeEngine /** < compute engine */
              >;
 
 /**

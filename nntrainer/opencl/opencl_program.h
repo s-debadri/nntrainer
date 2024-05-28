@@ -33,6 +33,7 @@ class Program {
    *
    * @param device_id OpenCL device id
    * @param compiler_options string compiler options
+   * @param binaryCreated true if binary is already present false otherwise
    * @return true if successful or false otherwise
    */
   bool BuildProgram(cl_device_id device_id, const std::string &compiler_options,
@@ -57,6 +58,8 @@ class Program {
                                   cl_program_build_info info);
 
 public:
+  static const std::string DEFAULT_KERNEL_PATH;
+
   /**
    * @brief Create OpenCL program from source
    *

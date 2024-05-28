@@ -2224,6 +2224,7 @@ Tensor &Tensor::dot(Tensor const &m, Tensor &result, bool trans, bool trans_m,
   unsigned int M, N, K, lda, ldb, ldc;
 
   if (!trans && !trans_m) {
+    ml_logi("tensor: dot -> !trans && !trans_m");
     if (dim2 != mdim1)
       throw std::runtime_error(
         "Error: incompatible dimensions for dot product");
@@ -2231,6 +2232,7 @@ Tensor &Tensor::dot(Tensor const &m, Tensor &result, bool trans, bool trans_m,
     N = mdim2;
     M = dim1;
     if (getFormat() == Tformat::NHWC) {
+      ml_logi("tensor: dot -> !trans && !trans_m -> NHWC");
       CREATE_IF_EMPTY_DIMS(result, batch(), N, height(), width(),
                            getTensorType()); //  NHWC Result Tensor
     } else {

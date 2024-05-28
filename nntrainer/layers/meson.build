@@ -54,6 +54,15 @@ layer_headers = [
 
 layer_deps = []
 
+cl_layer_sources = [
+  'cl_layers/fc_layer_cl.cpp'
+]
+
+# add OpenCL supported layers
+if get_option('enable-opencl')
+  layer_sources += cl_layer_sources
+endif
+
 # for android, it is disabled until we have support for the nnstreamer package
 if get_option('enable-nnstreamer-backbone') and get_option('platform') != 'android'
   if not nnstreamer_capi_dep.found()
