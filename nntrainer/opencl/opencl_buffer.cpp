@@ -30,7 +30,7 @@ namespace nntrainer::opencl {
 Buffer::Buffer(ContextManager &context_manager, size_t size_in_bytes,
                bool read_only, void *data) {
   cl_context context = context_manager.GetContext();
-  cl_mem_flags flags = read_only ? CL_MEM_READ_ONLY : CL_MEM_READ_WRITE;
+  cl_mem_flags flags = read_only ? CL_MEM_READ_ONLY | CL_MEM_ALLOC_HOST_PTR : CL_MEM_READ_WRITE | CL_MEM_ALLOC_HOST_PTR;
   if (data) {
     flags |= CL_MEM_USE_HOST_PTR;
   }

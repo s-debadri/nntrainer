@@ -41,6 +41,8 @@ private:
    *
    */
   opencl::ContextManager &context_inst_ = opencl::ContextManager::GetInstance();
+  opencl::CommandQueueManager &command_queue_inst_ = opencl::CommandQueueManager::GetInstance();
+
 
   /**
    * @brief Buffer size in bytes preset (256 mebibytes)
@@ -65,6 +67,9 @@ public:
    * @brief Initialize Buffer objects.
    */
   void initBuffers();
+
+  bool writeHost(const float *data, size_t size, opencl::Buffer* buff);
+  bool readHost(float *data, size_t size, opencl::Buffer* buff);
 
   /**
    * @brief Destroy Buffer pointers.

@@ -25,6 +25,7 @@ void sgemv_cl(const float *matAdata, const float *vecXdata, float *vecYdata,
   do {
     ClContext::SharedPtrClKernel kernel_sgemv_ptr;
 
+    auto t1 = std::chrono::high_resolution_clock::now();
     if (TransA) {
       kernel_sgemv_ptr =
         cl_context_ref.registerClKernel(sgemv_cl_kernel_, "sgemv_cl");
@@ -32,6 +33,9 @@ void sgemv_cl(const float *matAdata, const float *vecXdata, float *vecYdata,
       kernel_sgemv_ptr = cl_context_ref.registerClKernel(
         sgemv_cl_noTrans_kernel_, "sgemv_cl_noTrans");
     }
+    auto t2 = std::chrono::high_resolution_clock::now();
+    auto ms_int = std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1);
+    ml_logi("sgemv_cl: register kernel: %lu", ms_int.count());
 
     if (!kernel_sgemv_ptr) {
       break;
@@ -40,24 +44,31 @@ void sgemv_cl(const float *matAdata, const float *vecXdata, float *vecYdata,
     size_t dim1_size = sizeof(float) * dim1;
     size_t dim2_size = sizeof(float) * dim2;
 
-    result = clbuffInstance.readBufferA->WriteDataRegion(
-      cl_context_ref.command_queue_inst_, dim1 * dim2 * sizeof(float),
-      matAdata);
+    t1 = std::chrono::high_resolution_clock::now();
+    // result = clbuffInstance.readBufferA->WriteDataRegion(
+    //   cl_context_ref.command_queue_inst_, dim1 * dim2 * sizeof(float),
+    //   matAdata);
+    result = clbuffInstance.writeHost(matAdata, dim1 * dim2 * sizeof(float), clbuffInstance.readBufferA);
     if (!result) {
       break;
     }
 
-    result = clbuffInstance.readBufferB->WriteDataRegion(
-      cl_context_ref.command_queue_inst_, dim2_size, vecXdata);
+    // result = clbuffInstance.readBufferB->WriteDataRegion(
+    //   cl_context_ref.command_queue_inst_, dim2_size, vecXdata);
+    result = clbuffInstance.writeHost(vecXdata, dim2_size, clbuffInstance.readBufferB);
     if (!result) {
       break;
     }
 
-    result = clbuffInstance.writeBufferA->WriteDataRegion(
-      cl_context_ref.command_queue_inst_, dim1_size, vecYdata);
+    // result = clbuffInstance.writeBufferA->WriteDataRegion(
+    //   cl_context_ref.command_queue_inst_, dim1_size, vecYdata);
+    result = clbuffInstance.writeHost(vecYdata, dim1_size, clbuffInstance.writeBufferA);
     if (!result) {
       break;
     }
+    t2 = std::chrono::high_resolution_clock::now();
+    ms_int = std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1);
+    ml_logi("sgemv_cl: WriteDataRegion: %lu", ms_int.count());
 
     result = kernel_sgemv_ptr->SetKernelArguments(0, clbuffInstance.readBufferA,
                                                   sizeof(cl_mem));
@@ -90,17 +101,26 @@ void sgemv_cl(const float *matAdata, const float *vecXdata, float *vecYdata,
     const int work_groups_count[3] = {(int)dim1, 1, 1};
     const int work_group_size[3] = {32, 32, 1}; // test-value
 
+    t1 = std::chrono::high_resolution_clock::now();
     result = cl_context_ref.command_queue_inst_.DispatchCommand(
       kernel_sgemv_ptr, work_groups_count, work_group_size);
     if (!result) {
       break;
     }
+    t2 = std::chrono::high_resolution_clock::now();
+    ms_int = std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1);
+    ml_logi("sgemv_cl: DispatchCommand: %lu", ms_int.count());
 
-    result = clbuffInstance.writeBufferA->ReadDataRegion(
-      cl_context_ref.command_queue_inst_, dim1_size, vecYdata);
+    t1 = std::chrono::high_resolution_clock::now();
+    // result = clbuffInstance.writeBufferA->ReadDataRegion(
+    //   cl_context_ref.command_queue_inst_, dim1_size, vecYdata);
+    result = clbuffInstance.readHost(vecYdata, dim1_size, clbuffInstance.writeBufferA);
     if (!result) {
       break;
     }
+    t2 = std::chrono::high_resolution_clock::now();
+    ms_int = std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1);
+    ml_logi("sgemv_cl: ReadDataRegion: %lu", ms_int.count());
 
   } while (false);
 }
